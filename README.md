@@ -5,10 +5,10 @@ Based on the work of GreatScott https://www.instructables.com/id/DIY-Adjustable-
 ## Improvements compared to GreatScotts original version
 
 * better handling of the rotary encoder
-* the original project was a little bit dangerous. If the Arduino boots or resets during probing, the mosfet was fully open for about 2 seconds. A 10k resistor solved this
+* the original project was a little bit dangerous. If the Arduino boots or resets during probing, the mosfet was fully open for about 2 seconds. A 10k resistor from PWM pin to ground solved this
 * the glas fuse was replaced by a polyfuse, 3A
 * added temperature control using a 1wire DS18B20 sensor. Includes shutdown of the whole device if temperature alarm was triggered
-* added software based over current protection in source code
+* added software based over current protection and over power protection in source code
 * switched to INA219 sensor for measuring voltage and current, makes voltage divider and ACS712 obsolete. This sensor can handle up to 26V and 3.2A
 * Added a 3d printed case to the repository. 
 
@@ -41,21 +41,14 @@ Based on the work of GreatScott https://www.instructables.com/id/DIY-Adjustable-
 * M3.5 drill and M4 tap and die tool to add holes into the heatsink of not there already
 * M4.5 drill to widen the hole in the TO220 case of the mosfet.
 
-if you are using the 3D printed case I am providing in subfolder stl
+You should be able to source all parts from your top supplier for parts. At the moment the bill represents a value of less than 50 Euros, given you own all the tools already.
+
+If you are using the 3D printed case I am providing in subfolder stl
 
 * M3 screws to mount the housing parts to each other
 * M2 screws to fix the LCD in its place
 * a 3D printer and some filament of your choice
  
-## License: 
-
-https://creativecommons.org/licenses/by-nc-sa/4.0/
-
-Most obvious limits of this license:
-* You are not allowed to use this stuff for commercial purposes
-* You can download, reupload and change the stuff, but have to release it under the same license again
-* You have the mention the origin, "Original by Peter Stimpel, https://github.com/pstimpel/caterpillarbulldozer/"
-
 ## Home of this project
 
 https://github.com/pstimpel/ConstantLoad
@@ -116,19 +109,26 @@ If one of the software protection measures was activated, the whole device will 
 
 Since we use a polyfuse, the curcuit becomes cut once the fuse triggers due too much current. Just switch off the device and wait a few minutes so the fuse can cool down a bit. By cooling down, the fuse becomes operational again.
 
+Be careful, the device does some overshooting once it tries to find the right mosfet balancing. This overshooting can cause quite "nice" spikes in the current consumption. Stay relaxed with raising your thresholds.
+
 
 ## Possible improvements
 
 I would like to have a more smooth Rotary encoder use. It hops around sometimes. Maybe it is the cheap encoder I got, maybe there are better options to read the button press and encoder turns. 
 
-I guess it is quite important to add more security features, like a working over voltage protection and over current protection based on hardware, not software.
+I guess it is quite important to add more security features, like a working over voltage protection and over current protection based on hardware, not software. Right now we have over current protection and over power protection in software, only. Over voltage protection is not functional yet as well.
 
 It should be possible to protect the device from wrong connected probing. If you turn around plus and minus of the circuit you want to put load on, strange things might happen. 
 
+If the heatsink gets too hot, I would like to add a fan and some fan control, so the fan mounted to the heatsink could kick in and help with the cooling. We have plenty of options since we have our Arduino in the middle of our device. 
+
+## Thanks to ...
+
+GreatScott. His Youtube channel provides lots of insights and many cool projects. You should pay him a visit.
 
 ## Feedback
 
-If you go for a build, I would like it very much to hear from you. Maybe you want to share pics of your Bulldozer? You can find me at
+If you go for a build, I would like it very much to hear from you. Maybe you want to share pics of your device? You can find me at
 
 https://twitter.com/PjotrS72
 
@@ -143,3 +143,13 @@ I am providing this stuff as it is. I do not promise anything, and I am not resp
 ### Warning
 
 High current / power can cause heat, and heat can cause injuries. Make sure you adapt the warnlevels on top of the Arduino sketch to your needs. Especially the temperature alarm threshold should be set below the melting temperature of your filament if you were going for the 3D printed case.
+
+## License: 
+
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Most obvious limits of this license:
+* You are not allowed to use this stuff for commercial purposes
+* You can download, reupload and change the stuff, but have to release it under the same license again
+* You have the mention the origin, like "Original by Peter Stimpel, https://github.com/pstimpel/ConstantLoad"
+
