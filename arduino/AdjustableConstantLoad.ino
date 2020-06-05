@@ -1,7 +1,9 @@
 float temperaturealarm = 50.0; //Switch Mosfet PWM down if higher than "temperaturealarm °C"
-float voltagealarm = 999.0; //Switch Mosfet PWM down if higher than "voltage V"
+float voltagealarm = 25.0; //Switch Mosfet PWM down if higher than "voltage V", voltage alarm is not functional yet, but we need the value for limiting the power setting as well
 float currentalarm = 2.2; //Switch Mosfet PWM down if higher than "current A"
 float voltageMin = 0.05; //do not raise PWM if voltage lower than "voltageMin V"
+
+float poweralarm = voltagealarm * currentalarm;
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
@@ -235,7 +237,7 @@ void loop() {
       delay(10);
     }
   }
-
+  /*
   if ((voltagealarm < loadvoltage_V && current_A > 0.2) || 26.0 < loadvoltage_V) {
     OCR1A = 0;
     screen9();
@@ -247,7 +249,7 @@ void loop() {
       delay(10);
     }
   }
-
+  */
   if (temperaturealarm < temperature) {
     OCR1A = 0;
     screen8();
@@ -439,8 +441,8 @@ void loop() {
         }
         else {
           power = power + 0.1;
-          if (power > 20.0) {
-            power = 20.0;
+          if (power > poweralarm) {
+            power = poweralarm;
           }
           lcd.setCursor(7, 0);
 
@@ -498,8 +500,8 @@ void loop() {
         }
         else {
           current = current + 0.05;
-          if (current > 2.0) {
-            current = 2.0;
+          if (current > currentalarm) {
+            current = currentalarm;
           }
           lcd.setCursor(9, 0);
           lcd.print(current);
