@@ -13,7 +13,7 @@ Based on the work of GreatScott https://www.instructables.com/id/DIY-Adjustable-
 * Added a 3d printed case to the repository. 
 
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/1KW89nFb7pY /0.jpg)](https://www.youtube.com/watch?v=1KW89nFb7pY )
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/1KW89nFb7pY/0.jpg)](https://www.youtube.com/watch?v=1KW89nFb7pY )
 
 
 ## BOM, tools used by me
