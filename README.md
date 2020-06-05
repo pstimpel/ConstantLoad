@@ -11,6 +11,7 @@ Based on the work of GreatScott https://www.instructables.com/id/DIY-Adjustable-
 * added software based over current protection and over power protection in source code
 * switched to INA219 sensor for measuring voltage and current, makes voltage divider and ACS712 obsolete. This sensor can handle up to 26V and 3.2A
 * Added a 3d printed case to the repository. 
+* Since we do not have to rely on the low resolution of the Arduino ADC anymore, we can measure both current and voltage with more precision and resolution.
 
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/1KW89nFb7pY/0.jpg)](https://www.youtube.com/watch?v=1KW89nFb7pY )
