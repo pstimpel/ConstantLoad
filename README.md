@@ -2,7 +2,7 @@
 
 Based on the work of GreatScott https://www.instructables.com/id/DIY-Adjustable-Constant-Load-Current-Power/
 
-## Improvements
+## Improvements compared to GreatScotts original version
 
 * better handling of the rotary encoder
 * the original project was a little bit dangerous. If the Arduino boots or resets during probing, the mosfet was fully open for about 2 seconds. A 10k resistor solved this
@@ -11,6 +11,10 @@ Based on the work of GreatScott https://www.instructables.com/id/DIY-Adjustable-
 * added software based over current protection in source code
 * switched to INA219 sensor for measuring voltage and current, makes voltage divider and ACS712 obsolete. This sensor can handle up to 26V and 3.2A
 * Added a 3d printed case to the repository. 
+
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/1KW89nFb7pY /0.jpg)](https://www.youtube.com/watch?v=1KW89nFb7pY )
+
 
 ## BOM, tools used by me
 
@@ -91,6 +95,36 @@ Just follow the guide by GreatScott. Different steps are:
 ## 3D print instructions
 
 There is nothing special. I used PLA, no supports needed. 3 shells and 10% infill did it. 
+
+## Arduino Libraries
+
+https://github.com/johnrickman/LiquidCrystal_I2C
+
+https://github.com/adafruit/Adafruit_INA219
+
+https://www.pjrc.com/teensy/td_libs_OneWire.html
+
+https://github.com/milesburton/Arduino-Temperature-Control-Library
+
+## How to use
+
+Connect the device to 5V power source. Connect the circuit you want to "probe". Take care of plus and minus. Power the device on. Select the desired measuring method from the main menu. Current creates a constant current load, while Power creates a constant power load. Under Temperature you can monitor the temperature sensor and review the set temperature alarm threshold.
+
+Once you select your Watts or Amperes and start the load mechanism, it might take a few seconds until the load starts consuming electrons. This is because the Arduino does probe step by step how much the mosfet should be open to turn the desired current into heat. This is a protection, do not attempt to speed up this process.
+
+If one of the software protection measures was activated, the whole device will stop operation, including the mosfet. You have to turn off and on the device to restart operation. It is a good choice to clear the mistake that triggered the protection.
+
+Since we use a polyfuse, the curcuit becomes cut once the fuse triggers due too much current. Just switch off the device and wait a few minutes so the fuse can cool down a bit. By cooling down, the fuse becomes operational again.
+
+
+## Possible improvements
+
+I would like to have a more smooth Rotary encoder use. It hops around sometimes. Maybe it is the cheap encoder I got, maybe there are better options to read the button press and encoder turns. 
+
+I guess it is quite important to add more security features, like a working over voltage protection and over current protection based on hardware, not software.
+
+It should be possible to protect the device from wrong connected probing. If you turn around plus and minus of the circuit you want to put load on, strange things might happen. 
+
 
 ## Feedback
 
