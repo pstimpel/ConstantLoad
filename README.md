@@ -6,10 +6,10 @@ Based on the work of GreatScott https://www.instructables.com/id/DIY-Adjustable-
 
 * better handling of the rotary encoder
 * the original project was a little bit dangerous. If the Arduino boots or resets during probing, the mosfet was fully open for about 2 seconds. A 10k resistor from PWM pin to ground solved this
-* the glas fuse was replaced by a polyfuse, 3A
+* the glas fuse was replaced by a polyfuse, 0.9A
 * added temperature control using a 1wire DS18B20 sensor. Includes shutdown of the whole device if temperature alarm was triggered
 * added software based over current protection and over power protection in source code
-* switched to INA219 sensor for measuring voltage and current, makes voltage divider and ACS712 obsolete. This sensor can handle up to 26V and 3.2A
+* switched to INA219 sensor for measuring voltage and current, makes voltage divider and ACS712 obsolete. This sensor can handle up to 26V and 3.2A - however, we are using much lower values
 * Added a 3d printed case to the repository. 
 * Since we do not have to rely on the low resolution of the Arduino ADC anymore, we can measure both current and voltage with more precision and resolution.
 
@@ -28,7 +28,7 @@ Based on the work of GreatScott https://www.instructables.com/id/DIY-Adjustable-
 * some wires
 * Resistors, 0.25W: 10R, 4k7, 10k
 * Electrolytic capacitors, 10V: 22uF, 470uF
-* Polyfuse 3A
+* Polyfuse 0.9A
 * LCD 16x2, I2C
 * Rotary Encoder
 * Dupont cables female female
