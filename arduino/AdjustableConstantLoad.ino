@@ -1,7 +1,7 @@
 float temperaturealarm = 50.0; //Switch Mosfet PWM down if higher than "temperaturealarm °C"
 float voltagealarm = 25.0; //Switch Mosfet PWM down if higher than "voltage V", voltage alarm is not functional yet, but we need the value for limiting the power setting as well
-float currentalarm = 2.2; //Switch Mosfet PWM down if higher than "current A"
-float voltageMin = 0.05; //do not raise PWM if voltage lower than "voltageMin V"
+float currentalarm = 0.90; //Switch Mosfet PWM down if higher than "current A"
+float voltageMin = 0.005; //do not raise PWM if voltage lower than "voltageMin V"
 
 float poweralarm = voltagealarm * currentalarm;
 
@@ -55,6 +55,12 @@ volatile  float power_W = 0;
 volatile float temperature = -999.0;
 volatile int temperaturecounter = 0;
 
+volatile float wattarray[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+volatile float voltarray[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+volatile float amparray[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+
+volatile bool allowignore = true;
+
 byte customChar1[8] = {
   0b10000,
   0b11000,
@@ -76,6 +82,7 @@ byte customChar2[8] = {
   0b01110,
   0b00100,
 };
+
 byte customChar3[8] = {
   0b00010,
   0b00110,
@@ -92,7 +99,6 @@ ISR(PCINT2_vect) {
     button = true;
   }
 }
-
 
 void isrturn ()  {
   static unsigned long lastInterruptTime = 0;
@@ -157,7 +163,8 @@ void setup() {
     }
 
   }
-
+  ina219.setCalibration_32V_1A();
+  
   Serial.println("INA219 done");
   lcd.print(" ADJ CONST LOAD");
   lcd.setCursor(0, 1);
@@ -176,20 +183,84 @@ void loop() {
   shuntvoltage = ina219.getShuntVoltage_mV();
   busvoltage = ina219.getBusVoltage_V();
   current_mA = ina219.getCurrent_mA();
-  power_mW = ina219.getPower_mW();
-  power_W = power_mW / 1000.0;
+  //power_mW = ina219.getPower_mW();
+  //power_W = power_mW / 1000.0;
   current_A = current_mA / 1000.0;
 
+  bool zeroedvales=false;
   loadvoltage_V = busvoltage + (shuntvoltage / 1000);
-  if (power_W < 0.0 || loadvoltage_V < 0.0 || current_A < 0.0) {
-    power_W = 0.0;
+  if (loadvoltage_V < 0.0 || current_A < 0.0) {
+    /*
+    Serial.print("zeroing values ");
+    Serial.print(loadvoltage_V);
+    Serial.print(" V ");
+    Serial.print(current_A);
+    Serial.println(" A");
+    */
     loadvoltage_V = 0.0;
     current_A = 0.0;
+    zeroedvales = true;
+    
   }
-  if (shuntvoltage < 0.05) {
-    loadvoltage_V = 0.0;
+  //if (shuntvoltage < 0.05) {
+  //  loadvoltage_V = 0.0;
+  //  Serial.println("zeroing shuntvoltage");
+  //}
+  /*
+  Serial.print("A ");
+  Serial.print(current_A);
+  Serial.print(" V ");
+  Serial.print(loadvoltage_V);
+  Serial.print(" W ");
+  Serial.print(power_W);
+  */
+  power_W = loadvoltage_V * current_A;
+
+  bool doprocess=true;
+  
+  if(zeroedvales == true && allowignore == true) {
+    allowignore = false;
+    doprocess = false;
+    //Serial.print(" forced ignore ");
+  } else if (zeroedvales == false) {
+    allowignore=true;
   }
 
+  if(doprocess == true) {
+    
+    //build averages
+    wattarray[0] = wattarray[1];
+    wattarray[1] = wattarray[2];
+    wattarray[2] = wattarray[3];
+    wattarray[3] = wattarray[4];
+    wattarray[4] = power_W;
+  
+    power_W = (wattarray[0] + wattarray[1] + wattarray[2] + wattarray[3] + wattarray[4]) / 5;
+  
+    voltarray[0] = voltarray[1];
+    voltarray[1] = voltarray[2];
+    voltarray[2] = voltarray[3];
+    voltarray[3] = voltarray[4];
+    voltarray[4] = loadvoltage_V;
+  
+    loadvoltage_V = (voltarray[0] + voltarray[1] + voltarray[2] + voltarray[3] + voltarray[4]) / 5;
+  
+    amparray[0] = amparray[1];
+    amparray[1] = amparray[2];
+    amparray[2] = amparray[3];
+    amparray[3] = amparray[4];
+    amparray[4] = current_A;
+  
+    current_A = (amparray[0] + amparray[1] + amparray[2] + amparray[3] + amparray[4]) / 5;
+    /*
+    Serial.print(" As ");
+    Serial.print(current_A);
+    Serial.print(" Vs ");
+    Serial.print(loadvoltage_V);
+    Serial.print(" Ws ");
+    Serial.println(power_W);
+    */
+  }
 
   temperaturecounter++;
   if (screen != 7 && screen != 6 && screen != 3) {
@@ -206,27 +277,27 @@ void loop() {
     temperature = sensors.getTempCByIndex(0);
     temperaturecounter = 0;
     /*
-    Serial.print("C ");
-    Serial.println(temperature);
-    Serial.print("A ");
-    Serial.println(current_A);
-    Serial.print("V ");
-    Serial.println(loadvoltage_V);
-    Serial.print("SV ");
-    Serial.println((shuntvoltage / 1000));
-    Serial.print("BV ");
-    Serial.println(busvoltage);
-    Serial.print("W ");
-    Serial.println(power_W);
-    Serial.print("OCR1A ");
-    Serial.println(OCR1A);
+      Serial.print("C ");
+      Serial.println(temperature);
+      Serial.print("A ");
+      Serial.println(current_A);
+      Serial.print("V ");
+      Serial.println(loadvoltage_V);
+      Serial.print("SV ");
+      Serial.println((shuntvoltage / 1000));
+      Serial.print("BV ");
+      Serial.println(busvoltage);
+      Serial.print("W ");
+      Serial.println(power_W);
+      Serial.print("OCR1A ");
+      Serial.println(OCR1A);
     */
   }
 
 
 
 
-  if ((currentalarm < current_A && loadvoltage_V > 0.2) || 3.2 < current_A) {
+  if ((currentalarm < current_A && loadvoltage_V > 0.05) || currentalarm < current_A) {
     OCR1A = 0;
     screen10();
     screen = 10;
@@ -238,7 +309,7 @@ void loop() {
     }
   }
   /*
-  if ((voltagealarm < loadvoltage_V && current_A > 0.2) || 26.0 < loadvoltage_V) {
+    if ((voltagealarm < loadvoltage_V && current_A > 0.2) || 26.0 < loadvoltage_V) {
     OCR1A = 0;
     screen9();
     screen = 9;
@@ -248,7 +319,7 @@ void loop() {
     while (1) {
       delay(10);
     }
-  }
+    }
   */
   if (temperaturealarm < temperature) {
     OCR1A = 0;
@@ -281,7 +352,7 @@ void loop() {
       Serial.print("W  ");
       Serial.println(power_W);
     */
-    if (counter == 25) {
+    if (counter == 100) {
       lcd.setCursor(4, 0);
       lcd.print(current_A);
       lcd.print("A@");
@@ -290,7 +361,11 @@ void loop() {
       counter = 0;
     }
     if (current_A < current && loadvoltage_V > voltageMin) {
-      OCR1A++;
+      if(current_A < 0.1 && OCR1A < 2000) {
+        OCR1A = OCR1A + 10;
+      } else {
+        OCR1A = OCR1A + 1;
+      }
     }
     else {
       if (OCR1A > 0) {
@@ -300,8 +375,8 @@ void loop() {
     if (OCR1A < 0) {
       OCR1A = 0;
     }
-    //Serial.print("ocr1a ");
-    //Serial.println(OCR1A);
+    Serial.print("ocr1a ");
+    Serial.println(OCR1A);
     counter++;
     delayMicroseconds(100);
   }
@@ -315,7 +390,7 @@ void loop() {
         Serial.print("W  ");
         Serial.println(power_W);
     */
-    if (counter == 25) {
+    if (counter == 100) {
       lcd.setCursor(4, 0);
       lcd.print(power_W);
       lcd.print("W@");
@@ -324,18 +399,24 @@ void loop() {
       counter = 0;
     }
     if (power_W < power && loadvoltage_V > voltageMin) {
-      OCR1A++;
+      if(power_W < 0.1 && OCR1A < 2000) {
+        OCR1A = OCR1A + 10;
+      } else {
+        OCR1A = OCR1A + 1;
+      }
     }
     else {
       if (OCR1A > 0) {
         OCR1A = OCR1A - 1;
+      } else {
+        OCR1A = 0;
       }
     }
     if (OCR1A < 0) {
       OCR1A = 0;
     }
-    //Serial.print("ocr1a ");
-    //Serial.println(OCR1A);
+    Serial.print("ocr1a ");
+    Serial.println(OCR1A);
     counter++;
     delayMicroseconds(100);
   }
@@ -714,6 +795,7 @@ void screen6() {
   lcd.write((uint8_t)0);
   lcd.print("STOP");
 }
+
 void screen7() {
   lcd.clear();
   lcd.print("Temp: ");
@@ -727,6 +809,7 @@ void screen7() {
   lcd.write((uint8_t)0);
   lcd.print("Back");
 }
+
 void screen8() {
   lcd.clear();
   lcd.print("!! TEMP ALARM !! ");
@@ -736,18 +819,22 @@ void screen8() {
   lcd.print("C");
 
 }
+
 void screen9() {
   lcd.clear();
-  lcd.print("!! VOLT ALARM !! ");
+  lcd.print("OV Warn ");
+  lcd.print(OCR1A);
   lcd.setCursor(0, 1);
   lcd.print("Shutdown! ");
   lcd.print(loadvoltage_V);
   lcd.print("V");
 
 }
+
 void screen10() {
   lcd.clear();
-  lcd.print("!! CUR. ALARM !! ");
+  lcd.print("OC Warn ");
+  lcd.print(OCR1A);
   lcd.setCursor(0, 1);
   lcd.print("Shutdown! ");
   lcd.print(current_A);
